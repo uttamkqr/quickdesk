@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(to right, #e0f2fe, #f0f9ff);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">📊 Ticket Status Overview</h2>
+
+    <!-- 📥 Export Button -->
+    <div class="text-right mb-4">
+      <a href="{{ url_for('admin.export_tickets') }}"
+         class="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">
+        📥 Export Tickets to Excel
+      </a>
+    </div>
+
+    <!-- Chart -->
+    <canvas id="ticketChart" width="400" height="300"></canvas>
+    <div class="mt-4 text-center">
+      <p class="text-gray-600">This chart represents the distribution of ticket statuses.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="mt-6 grid grid-cols-2 gap-4">
+      <div class="bg-blue-100 p-4 rounded-lg shadow">
+        <h3 class="font-semibold text-gray-700">Total Tickets</h3>
+        <p class="text-2xl text-blue-600">{{ total_tickets or 0 }}</p>
+      </div>
+      <div class="bg-green-100 p-4 rounded-lg shadow">
+        <h3 class="font-semibold text-gray-700">Resolved Tickets</h3>
+        <p class="text-2xl text-green-600">{{ resolved_tickets or 0 }}</p>
+      </div>
+      <div class="bg-yellow-100 p-4 rounded-lg shadow">
+        <h3 class="font-semibold text-gray-700">Pending Tickets</h3>
+        <p class="text-2xl text-yellow-600">{{ pending_tickets or 0 }}</p>
+      </div>
+      <div class="bg-red-100 p-4 rounded-lg shadow">
+        <h3 class="font-semibold text-gray-700">Closed Tickets</h3>
+        <p class="text-2xl text-red-600">{{ closed_tickets or 0 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Chart Script -->
+  <script>
+    const labels = {{ labels | tojson | safe }};
+    const values = {{ values | tojson | safe }};
+  
+
+    const ctx = document.getElementById('ticketChart').getContext('2d');
+    const ticketChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels.length ? labels : ['No Data'],
+        datasets: [{
+          label: 'Tickets',
+          data: values.length ? values : [1],
+          backgroundColor: [
+            '#60a5fa', // blue
+            '#34d399', // green
+            '#fbbf24', // yellow
+            '#f87171', // red
+            '#a78bfa'  // purple
+          ],
+          borderWidth: 2,
+          borderColor: '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 20,
+              padding: 15,
+              font: {
+                size: 14,
+                weight: 'bold',
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(tooltipItem) {
+                return `${tooltipItem.label}: ${tooltipItem.raw}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

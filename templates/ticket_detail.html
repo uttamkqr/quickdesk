@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ticket #{{ ticket.id }} - QuickDesk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(to right, #e0f2fe, #f0f9ff);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <div class="max-w-3xl mx-auto py-10 px-6">
+
+    <!-- ✅ Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-4">
+          {% for category, msg in messages %}
+            <div class="p-4 rounded text-white font-medium 
+              {% if category == 'success' %} bg-green-500 
+              {% elif category == 'danger' %} bg-red-500 
+              {% else %} bg-gray-500 {% endif %}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ✅ Ticket Info -->
+    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+      <h1 class="text-3xl font-bold mb-2">🎫 {{ ticket.subject }}</h1>
+      <p class="text-sm text-gray-600 mb-2">Category: <strong>{{ ticket.category.name }}</strong></p>
+      <p class="text-sm text-gray-600 mb-2">Status: 
+        <span class="px-2 py-1 rounded text-white bg-blue-600">{{ ticket.status }}</span>
+      </p>
+      <p class="mt-4 text-gray-700">{{ ticket.description }}</p>
+
+      {% if ticket.attachment %}
+        <div class="mt-4">
+          📎 Attachment: 
+          <a href="/{{ ticket.attachment }}" class="text-indigo-600 underline" target="_blank">
+            View File
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ✅ Comments -->
+    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+      <h2 class="text-2xl font-semibold mb-4">💬 Comments</h2>
+      {% if comments %}
+        <div class="space-y-4">
+          {% for comment in comments %}
+            <div class="border border-gray-200 rounded p-3 bg-gray-50">
+              <div class="text-sm text-gray-500 mb-1">
+                <strong>{{ comment.author.username }}</strong> 
+                • {{ comment.created_at.strftime('%b %d, %Y %I:%M %p') }}
+              </div>
+              <div class="text-gray-800">{{ comment.message }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-gray-500">No comments yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- ✅ Add Comment -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">✍️ Add a Comment</h2>
+      <form method="POST">
+        <textarea name="message" rows="4" required
+          class="w-full border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Write your comment..."></textarea>
+        <button type="submit"
+          class="mt-4 bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700 transition">
+          Submit Comment
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - QuickDesk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-form {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+    .form-input:focus {
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+    }
+    .social-btn:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-blue-50 min-h-screen flex items-center justify-center p-4">
+
+  <div class="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-md animate-form">
+    <div class="p-8">
+
+      <!-- ✅ Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% set color_map = {'success': 'green', 'danger': 'red', 'warning': 'yellow', 'info': 'blue'} %}
+          {% for category, msg in messages %}
+            <div class="p-2 mb-4 text-sm text-white rounded bg-{{ color_map.get(category, 'gray') }}-500">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- ✅ Logo -->
+      <div class="flex justify-center mb-8">
+        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/0072b8d4-57d0-4a88-87b5-0028977c1ec8.png" class="h-24 w-24 rounded-full object-contain" />
+      </div>
+
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Your Account</h1>
+      <p class="text-gray-600 text-center mb-8">Join our community today</p>
+
+      <!-- ✅ Register Form -->
+      <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-6">
+        <!-- Username -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Username</label>
+          <div class="relative">
+            <input name="username" placeholder="Create a username" required autocomplete="off"
+              class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" />
+            <i class="fas fa-user absolute right-3 top-3.5 text-gray-400"></i>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Email Address</label>
+          <div class="relative">
+            <input name="email" type="email" placeholder="name@example.com" required autocomplete="off"
+              class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" />
+            <i class="fas fa-envelope absolute right-3 top-3.5 text-gray-400"></i>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Password</label>
+          <div class="relative">
+            <input name="password" type="password" placeholder="••••••••" required autocomplete="off"
+              class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" />
+            <i class="fas fa-lock absolute right-3 top-3.5 text-gray-400"></i>
+          </div>
+        </div>
+
+        <!-- Role -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Account Type</label>
+          <select name="role" required
+            class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
+            <option value="enduser">End User</option>
+            <option value="agent">Support Agent</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit"
+          class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+          Create Account
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-white text-gray-500">Or continue with</span>
+        </div>
+      </div>
+
+      <!-- Social Buttons -->
+      <div class="grid grid-cols-2 gap-4">
+        <button class="social-btn flex items-center justify-center py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-all">
+          <i class="fab fa-google text-red-500 mr-2"></i> Google
+        </button>
+        <button class="social-btn flex items-center justify-center py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-all">
+          <i class="fab fa-apple text-gray-900 mr-2"></i> Apple
+        </button>
+      </div>
+
+      <!-- Sign In Link -->
+      <p class="text-center text-sm text-gray-600 mt-8">
+        Already have an account? <a href="{{ url_for('auth.login') }}" class="text-indigo-600 font-medium hover:text-indigo-800">Sign in</a>
+      </p>
+    </div>
+  </div>
+
+</body>
+</html>
