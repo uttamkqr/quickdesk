@@ -25,6 +25,271 @@ End Users, Agents, and Admins).
 - **[Summary](SUMMARY.md)** - Complete overview of changes
 - **[Fixes](FIXES.md)** - List of all bug fixes and improvements
 
+## 🚀 How to Run This Project (प्रोजेक्ट कैसे चलाएं)
+
+### Method 1: Automated Setup (Recommended) ⚡
+
+**Windows Users:**
+
+```bash
+# 1. Virtual environment activate करें
+venv\Scripts\activate
+
+# 2. Application चलाएं
+python app.py
+```
+
+**Linux/Mac Users:**
+
+```bash
+# 1. Virtual environment activate करें
+source venv/bin/activate
+
+# 2. Application चलाएं
+python app.py
+```
+
+**✅ Application चल जाएगी:** `http://localhost:5000`
+
+---
+
+### Method 2: Fresh Installation (पहली बार setup कर रहे हैं)
+
+#### Step 1️⃣: Clone Repository
+
+```bash
+git clone https://github.com/uttamkqr/quickdesk.git
+cd quickdesk
+```
+
+#### Step 2️⃣: Virtual Environment बनाएं और Activate करें
+
+**Windows:**
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Linux/Mac:**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### Step 3️⃣: Dependencies Install करें
+
+```bash
+pip install -r requirements.txt
+```
+
+#### Step 4️⃣: Environment Variables Setup करें
+
+**Option A: .env.example से copy करें**
+
+```bash
+# Windows
+copy .env.example .env
+
+# Linux/Mac
+cp .env.example .env
+```
+
+**Option B: Manual .env file बनाएं**
+
+`.env` file बनाकर इसमें अपनी details डालें:
+
+```env
+# Database Configuration
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_HOST=localhost
+DB_NAME=quickdesk
+
+# Email Configuration (Gmail)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_gmail_app_password
+
+# Application Secret Key
+SECRET_KEY=your-random-secret-key-here
+```
+
+#### Step 5️⃣: MySQL Database बनाएं
+
+```bash
+# MySQL में login करें
+mysql -u root -p
+
+# Database बनाएं
+CREATE DATABASE quickdesk;
+exit;
+```
+
+#### Step 6️⃣: Database Tables बनाएं
+
+```bash
+# Option A: Migration script चलाएं
+python migrate_database.py
+
+# Option B: Init script चलाएं
+python init_db.py
+```
+
+#### Step 7️⃣: Default Categories Add करें
+
+```bash
+python add_default_categories.py
+```
+
+#### Step 8️⃣: Admin User बनाएं
+
+```bash
+python create_admin.py
+```
+
+Script आपसे पूछेगा:
+
+- Username: `admin`
+- Email: `admin@example.com`
+- Password: `admin123` (या कोई भी strong password)
+
+#### Step 9️⃣: Application Run करें! 🎉
+
+```bash
+python app.py
+```
+
+#### Step 🔟: Browser में खोलें
+
+```
+http://localhost:5000
+```
+
+**Default Login:**
+
+- Email: `admin@example.com`
+- Password: `admin123` (जो आपने step 8 में set किया था)
+
+---
+
+### Method 3: One-Line Setup (सबसे तेज़) ⚡⚡⚡
+
+अगर पहली बार install कर रहे हैं तो यह command चलाएं:
+
+**Windows:**
+
+```bash
+install.bat && venv\Scripts\activate && python setup.py && python app.py
+```
+
+**Linux/Mac:**
+
+```bash
+chmod +x install.sh && ./install.sh && source venv/bin/activate && python setup.py && python app.py
+```
+
+---
+
+### Daily Usage (रोज़ काम करने के लिए)
+
+हर बार जब आप project पर काम करें:
+
+**Windows:**
+
+```bash
+# 1. Project folder में जाएं
+cd D:/quickdesk
+
+# 2. Virtual environment activate करें
+venv\Scripts\activate
+
+# 3. Application चलाएं
+python app.py
+```
+
+**Linux/Mac:**
+
+```bash
+# 1. Project folder में जाएं
+cd ~/quickdesk
+
+# 2. Virtual environment activate करें
+source venv/bin/activate
+
+# 3. Application चलाएं
+python app.py
+```
+
+**Application access करें:** `http://localhost:5000`
+
+**बंद करने के लिए:** `Ctrl + C` press करें
+
+---
+
+### Useful Commands (उपयोगी Commands)
+
+```bash
+# Database verify करें
+python check_categories.py
+
+# Installation verify करें
+python verify_installation.py
+
+# नया admin user बनाएं
+python create_admin.py
+
+# Virtual environment से बाहर निकलें
+deactivate
+```
+
+---
+
+### Troubleshooting (समस्या होने पर)
+
+#### Problem: `ModuleNotFoundError`
+
+**Solution:**
+
+```bash
+# Virtual environment activate है check करें
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+
+# Dependencies फिर से install करें
+pip install -r requirements.txt
+```
+
+#### Problem: Database Connection Error
+
+**Solution:**
+
+```bash
+# MySQL running है check करें
+# Windows: Services में MySQL देखें
+# Linux: sudo service mysql status
+
+# .env file में password check करें
+# Database exist करता है check करें
+mysql -u root -p -e "SHOW DATABASES;"
+```
+
+#### Problem: Email Not Sending
+
+**Solution:**
+
+- Gmail में App Password बनाएं (2FA enable करना पड़ेगा)
+- `.env` में EMAIL_PASS में App Password डालें (Gmail password नहीं)
+
+#### Problem: Port 5000 Already in Use
+
+**Solution:**
+
+```bash
+# app.py में port change करें
+# या दूसरी application को बंद करें
+```
+
 ## Features
 
 ### 🎯 Core Functionality
