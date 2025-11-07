@@ -80,6 +80,13 @@
             >
             <i class="fas fa-lock absolute right-3 top-3.5 text-gray-400"></i>
           </div>
+            <!-- Forgot Password Link -->
+            <div class="text-right mt-2">
+                <a href="{{ url_for('password_reset.forgot_password') }}"
+                   class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                    <i class="fas fa-key mr-1"></i>Forgot Password?
+                </a>
+            </div>
         </div>
 
         <button 

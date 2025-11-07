@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ticket #{{ ticket.id }} - QuickDesk</title>
   <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       background: linear-gradient(to right, #e0f2fe, #f0f9ff);
@@ -13,16 +14,18 @@
 </head>
 <body class="min-h-screen">
 
-  <div class="max-w-3xl mx-auto py-10 px-6">
+<div class="max-w-4xl mx-auto py-10 px-6">
 
-    <!-- ✅ Flash Messages -->
+      <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="mb-4">
+          <div class="mb-4 space-y-2">
           {% for category, msg in messages %}
             <div class="p-4 rounded text-white font-medium 
               {% if category == 'success' %} bg-green-500 
-              {% elif category == 'danger' %} bg-red-500 
+              {% elif category == 'danger' %} bg-red-500
+              {% elif category == 'warning' %} bg-yellow-500
+              {% elif category == 'info' %} bg-blue-500
               {% else %} bg-gray-500 {% endif %}">
               {{ msg }}
             </div>
@@ -31,56 +34,300 @@
       {% endif %}
     {% endwith %}
 
-    <!-- ✅ Ticket Info -->
-    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-      <h1 class="text-3xl font-bold mb-2">🎫 {{ ticket.subject }}</h1>
-      <p class="text-sm text-gray-600 mb-2">Category: <strong>{{ ticket.category.name }}</strong></p>
-      <p class="text-sm text-gray-600 mb-2">Status: 
-        <span class="px-2 py-1 rounded text-white bg-blue-600">{{ ticket.status }}</span>
-      </p>
-      <p class="mt-4 text-gray-700">{{ ticket.description }}</p>
+      <!-- Ticket Info Card -->
+      <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+          <div class="flex justify-between items-start mb-4">
+              <h1 class="text-3xl font-bold text-gray-800">
+                  <i class="fas fa-ticket-alt text-indigo-600"></i> {{ ticket.subject }}
+              </h1>
+              <span class="px-3 py-1 rounded-full text-sm font-semibold
+          {% if ticket.status == 'Open' %} bg-blue-100 text-blue-800
+          {% elif ticket.status == 'In Progress' %} bg-yellow-100 text-yellow-800
+          {% elif ticket.status == 'Resolved' %} bg-green-100 text-green-800
+          {% elif ticket.status == 'Closed' %} bg-gray-200 text-gray-700
+          {% endif %}">
+          {{ ticket.status }}
+        </span>
+          </div>
 
-      {% if ticket.attachment %}
-        <div class="mt-4">
-          📎 Attachment: 
-          <a href="/{{ ticket.attachment }}" class="text-indigo-600 underline" target="_blank">
-            View File
-          </a>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+            <div>
+                <span class="text-gray-500">Ticket ID:</span>
+                <div class="font-semibold">#{{ ticket.id }}</div>
+            </div>
+            <div>
+                <span class="text-gray-500">Category:</span>
+                <div class="font-semibold">{{ ticket.category.name }}</div>
+            </div>
+            <div>
+                <span class="text-gray-500">Priority:</span>
+                <div class="font-semibold">
+                    {% if ticket.priority == 'Critical' %}
+                        <span class="text-red-600">🔴 Critical</span>
+                    {% elif ticket.priority == 'High' %}
+                        <span class="text-orange-600">🟠 High</span>
+                    {% elif ticket.priority == 'Medium' %}
+                        <span class="text-yellow-600">🟡 Medium</span>
+                    {% else %}
+                        <span class="text-green-600">🟢 Low</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <span class="text-gray-500">Created:</span>
+                <div class="font-semibold">{{ ticket.created_at.strftime('%b %d, %Y') }}</div>
+            </div>
+        </div>
+
+          <!-- Assigned Agent Info -->
+          {% if ticket.assigned_to %}
+              <div class="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <span class="text-sm font-medium text-gray-700">
+                    <i class="fas fa-user-tie text-indigo-600 mr-1"></i> Assigned to:
+                </span>
+                  <span class="text-sm font-semibold text-indigo-800">{{ ticket.assigned_agent.username }}</span>
+              </div>
+          {% endif %}
+
+          <hr class="my-4">
+
+        <div class="mb-4">
+            <h3 class="text-sm font-semibold text-gray-500 mb-2">Description</h3>
+            <p class="text-gray-700 whitespace-pre-wrap">{{ ticket.description }}</p>
+        </div>
+
+          <!-- Old Single Attachment (if exists) -->
+        {% if ticket.attachment %}
+          <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                      <i class="fas fa-paperclip text-blue-600 mr-2"></i>
+                      <span class="text-sm font-medium text-gray-700">Attachment:</span>
+                      <span class="text-sm text-gray-600 ml-2">{{ ticket.attachment.split('/')[-1] }}</span>
+                  </div>
+                  <div class="space-x-2">
+                      <a href="/{{ ticket.attachment }}"
+                         target="_blank"
+                         class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
+                          <i class="fas fa-eye mr-1"></i> View
+                      </a>
+                      {% if current_user.role in ['agent', 'admin'] %}
+                          <a href="{{ url_for('agent.download_attachment', ticket_id=ticket.id) }}"
+                             class="inline-flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                              <i class="fas fa-download mr-1"></i> Download
+                          </a>
+                      {% endif %}
+                  </div>
+              </div>
         </div>
       {% endif %}
-    </div>
 
-    <!-- ✅ Comments -->
-    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-      <h2 class="text-2xl font-semibold mb-4">💬 Comments</h2>
-      {% if comments %}
+          <!-- Multiple Attachments (if exists) -->
+          {% if ticket.attachments and ticket.attachments|length > 0 %}
+              <div class="mt-4">
+                  <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                      <i class="fas fa-paperclip text-blue-600 mr-2"></i>
+                      Attachments ({{ ticket.attachments|length }})
+                  </h3>
+                  <div class="space-y-2">
+                      {% for attachment in ticket.attachments %}
+                          <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                              <div class="flex items-center space-x-3">
+                                  <div class="w-10 h-10 bg-blue-600 text-white rounded flex items-center justify-center">
+                                      <i class="fas fa-file"></i>
+                                  </div>
+                                  <div>
+                                      <div class="text-sm font-medium text-gray-800">{{ attachment.original_filename }}</div>
+                                      <div class="text-xs text-gray-500">
+                                          {{ (attachment.file_size / 1024) | round(2) }} KB •
+                                          Uploaded {{ attachment.uploaded_at.strftime('%b %d, %Y') }}
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="space-x-2">
+                                  <a href="/{{ attachment.file_path }}"
+                                     target="_blank"
+                                     class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
+                                      <i class="fas fa-eye mr-1"></i> View
+                                  </a>
+                                  <a href="/{{ attachment.file_path }}"
+                                     download="{{ attachment.original_filename }}"
+                                     class="inline-flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                      <i class="fas fa-download mr-1"></i> Download
+                                  </a>
+                              </div>
+                          </div>
+                      {% endfor %}
+                  </div>
+              </div>
+          {% endif %}
+      </div>
+
+          <!-- Agent/Admin: Assign/Forward Ticket -->
+          {% if current_user.role in ['agent', 'admin'] %}
+              <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                  <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                      <i class="fas fa-share text-indigo-600 mr-2"></i>
+                      Forward Ticket to Agent
+                  </h2>
+
+                  <!-- Warning for In Progress tickets (Agent only) -->
+                  {% if current_user.role == 'agent' and ticket.status == 'In Progress' %}
+                      <div class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded mb-4">
+                          <div class="flex items-start">
+                              <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                              <div>
+                                  <p class="font-semibold text-yellow-800">Cannot Forward In Progress Tickets</p>
+                                  <p class="text-sm text-yellow-700 mt-1">
+                                      This ticket is currently "In Progress". You cannot forward it to another agent.
+                                      Please either complete the ticket or change the status back to "Open" if you need
+                                      to reassign.
+                                  </p>
+                              </div>
+                      </div>
+                  </div>
+              {% elif current_user.role == 'agent' and ticket.status in ['Resolved', 'Closed'] %}
+                  <div class="p-4 bg-gray-50 border-l-4 border-gray-400 rounded mb-4">
+                      <div class="flex items-start">
+                          <i class="fas fa-info-circle text-gray-600 mt-1 mr-3"></i>
+                          <div>
+                              <p class="font-semibold text-gray-800">Ticket Already Closed</p>
+                              <p class="text-sm text-gray-700 mt-1">
+                                  This ticket is {{ ticket.status }}. No need to forward closed tickets.
+                              </p>
+                          </div>
+                      </div>
+                  </div>
+              {% endif %}
+
+                  <!-- Forward Form (disabled if In Progress for agents) -->
+                  <form method="POST" action="
+
+                          {% if current_user.role == 'agent' %}{{ url_for('agent.assign_ticket', ticket_id=ticket.id) }}{% else %}{{ url_for('admin.assign_ticket', ticket_id=ticket.id) }}{% endif %}"
+                        class="space-y-4">
+                      <div>
+                          <label for="assigned_to" class="block text-sm font-medium text-gray-700 mb-2">
+                              <i class="fas fa-user-check mr-1"></i> Select Agent:
+                          </label>
+                          <select name="assigned_to" id="assigned_to" required
+                                  {% if current_user.role == 'agent' and ticket.status in ['In Progress', 'Resolved', 'Closed'] %}disabled{% endif %}
+                                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                              {% if current_user.role == 'agent' and ticket.status in ['In Progress', 'Resolved', 'Closed'] %}bg-gray-100 cursor-not-allowed{% endif %}">
+                              <option value="">-- Select an agent --</option>
+                              {% if agents %}
+                                  {% for agent in agents %}
+                                      <option value="{{ agent.id }}"
+                                              {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                          {{ agent.username }} ({{ agent.email }})
+                                      </option>
+                                  {% endfor %}
+                              {% endif %}
+                          </select>
+                      </div>
+                      <div>
+                          <label for="forward_note" class="block text-sm font-medium text-gray-700 mb-2">
+                              <i class="fas fa-sticky-note mr-1"></i> Note for Agent (Optional):
+                          </label>
+                          <textarea name="forward_note" id="forward_note" rows="3"
+                                    {% if current_user.role == 'agent' and ticket.status in ['In Progress', 'Resolved', 'Closed'] %}disabled{% endif %}
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                                {% if current_user.role == 'agent' and ticket.status in ['In Progress', 'Resolved', 'Closed'] %}bg-gray-100 cursor-not-allowed{% endif %}"
+                                    placeholder="Add a note for the assigned agent..."></textarea>
+                      </div>
+                      <button type="submit"
+                              {% if current_user.role == 'agent' and ticket.status in ['In Progress', 'Resolved', 'Closed'] %}disabled{% endif %}
+                              class="bg-indigo-600 text-white px-6 py-2 rounded-lg transition flex items-center
+                          {% if current_user.role == 'agent' and ticket.status in ['In Progress', 'Resolved', 'Closed'] %}opacity-50 cursor-not-allowed{% else %}hover:bg-indigo-700{% endif %}">
+                          <i class="fas fa-paper-plane mr-2"></i>
+                          Assign / Forward Ticket
+                      </button>
+                  </form>
+
+                  <!-- Help text -->
+                  {% if current_user.role == 'agent' and ticket.status == 'Open' %}
+                      <p class="mt-4 text-sm text-gray-600">
+                          <i class="fas fa-info-circle mr-1"></i>
+                          <strong>Note:</strong> You can only forward tickets with "Open" status. Once you mark it as
+                          "In Progress",
+                          you take ownership and should complete it yourself.
+                      </p>
+                  {% endif %}
+              </div>
+          {% endif %}
+
+          <!-- Comments Section -->
+      <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+          <h2 class="text-2xl font-semibold mb-4 flex items-center">
+              <i class="fas fa-comments text-indigo-600 mr-2"></i>
+              Comments ({{ comments|length }})
+          </h2>
+
+          {% if comments %}
         <div class="space-y-4">
           {% for comment in comments %}
-            <div class="border border-gray-200 rounded p-3 bg-gray-50">
-              <div class="text-sm text-gray-500 mb-1">
-                <strong>{{ comment.author.username }}</strong> 
-                • {{ comment.created_at.strftime('%b %d, %Y %I:%M %p') }}
+              <div class="border-l-4 {% if comment.is_internal %}border-yellow-500 bg-yellow-50{% else %}border-indigo-500 bg-gray-50{% endif %} p-4 rounded-r-lg">
+                  <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center space-x-2">
+                          <div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">
+                              {{ comment.author.username[0].upper() }}
+                          </div>
+                          <div>
+                              <div class="font-semibold text-gray-800">{{ comment.author.username }}</div>
+                              <div class="text-xs text-gray-500">{{ comment.created_at.strftime('%b %d, %Y at %I:%M %p') }}</div>
+                          </div>
+                      </div>
+                      {% if comment.is_internal %}
+                          <span class="px-2 py-1 bg-yellow-200 text-yellow-800 text-xs font-semibold rounded">
+                    <i class="fas fa-lock"></i> Internal Note
+                  </span>
+                      {% endif %}
               </div>
-              <div class="text-gray-800">{{ comment.message }}</div>
+                <div class="text-gray-700 mt-2 whitespace-pre-wrap">{{ comment.message }}</div>
             </div>
           {% endfor %}
         </div>
       {% else %}
-        <p class="text-gray-500">No comments yet.</p>
+          <p class="text-gray-500 text-center py-8">
+              <i class="fas fa-comment-slash text-4xl mb-2"></i><br>
+              No comments yet. Be the first to comment!
+          </p>
       {% endif %}
     </div>
 
-    <!-- ✅ Add Comment -->
-    <div class="bg-white p-6 rounded-xl shadow-md">
-      <h2 class="text-2xl font-semibold mb-4">✍️ Add a Comment</h2>
-      <form method="POST">
+      <!-- Add Comment Form -->
+      <div class="bg-white p-6 rounded-xl shadow-lg">
+          <h2 class="text-2xl font-semibold mb-4 flex items-center">
+              <i class="fas fa-pen text-indigo-600 mr-2"></i>
+              Add a Comment
+          </h2>
+          <form method="POST" action="
+                  {% if current_user.role == 'agent' %}{{ url_for('agent.view_ticket', ticket_id=ticket.id) }}{% elif current_user.role == 'admin' %}{{ url_for('admin.view_ticket', ticket_id=ticket.id) }}{% else %}{{ url_for('enduser.view_ticket', ticket_id=ticket.id) }}{% endif %}">
         <textarea name="message" rows="4" required
-          class="w-full border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          placeholder="Write your comment..."></textarea>
-        <button type="submit"
-          class="mt-4 bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700 transition">
-          Submit Comment
-        </button>
+                  class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Write your comment or update here..."></textarea>
+
+          {% if current_user.role in ['agent', 'admin'] %}
+              <div class="mt-3 flex items-center">
+                  <input type="checkbox" name="is_internal" id="is_internal" class="w-4 h-4 text-indigo-600 rounded">
+                  <label for="is_internal" class="ml-2 text-sm text-gray-700">
+                      <i class="fas fa-lock text-yellow-600"></i> Mark as Internal Note (not visible to end users)
+                  </label>
+              </div>
+          {% endif %}
+
+          <div class="mt-4 flex items-center space-x-3">
+              <button type="submit"
+                      class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center">
+                  <i class="fas fa-paper-plane mr-2"></i>
+                  Submit Comment
+              </button>
+              <a href="
+                      {% if current_user.role == 'agent' %}{{ url_for('agent.agent_dashboard') }}{% elif current_user.role == 'admin' %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('enduser.dashboard') }}{% endif %}"
+                 class="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                  <i class="fas fa-arrow-left mr-2"></i>
+                  Back to Dashboard
+              </a>
+          </div>
       </form>
     </div>
 

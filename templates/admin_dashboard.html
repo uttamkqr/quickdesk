@@ -6,9 +6,28 @@
   <title>Admin Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       background: linear-gradient(to right, #e0f2fe, #f0f9ff);
+    }
+
+    .unassigned-row {
+        background-color: #fef3c7 !important;
+        border-left: 4px solid #f59e0b;
+    }
+
+    .pulse-badge {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
     }
   </style>
 </head>
@@ -37,6 +56,17 @@
         <h3 class="font-semibold text-gray-700">Total Tickets</h3>
         <p class="text-2xl text-blue-600">{{ total_tickets or 0 }}</p>
       </div>
+        <div class="bg-orange-100 p-4 rounded-lg shadow relative">
+            <h3 class="font-semibold text-gray-700">⏳ Unassigned</h3>
+            <p class="text-2xl text-orange-600">
+                {{ recent_tickets|selectattr('assigned_to', 'none')|list|length }}
+            </p>
+            {% if recent_tickets|selectattr('assigned_to', 'none')|list|length > 0 %}
+                <span class="absolute top-2 right-2 text-orange-600 pulse-badge">
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+            {% endif %}
+        </div>
       <div class="bg-green-100 p-4 rounded-lg shadow">
         <h3 class="font-semibold text-gray-700">Resolved Tickets</h3>
         <p class="text-2xl text-green-600">{{ resolved_tickets or 0 }}</p>
@@ -50,6 +80,116 @@
         <p class="text-2xl text-red-600">{{ closed_tickets or 0 }}</p>
       </div>
     </div>
+  </div>
+
+  <!-- Recent Tickets Section -->
+  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl mt-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center justify-between">
+          <span>
+              <i class="fas fa-ticket-alt text-indigo-600 mr-2"></i>
+              Recent Tickets
+          </span>
+          <span class="text-sm font-normal text-orange-600">
+              <i class="fas fa-exclamation-triangle"></i> 
+              {{ recent_tickets|selectattr('assigned_to', 'none')|list|length }} Unassigned - Need Assignment!
+          </span>
+      </h2>
+
+      {% if recent_tickets %}
+          <div class="overflow-x-auto">
+              <table class="w-full border-collapse">
+                  <thead>
+                  <tr class="bg-gray-100">
+                      <th class="border p-2 text-left">ID</th>
+                      <th class="border p-2 text-left">Subject</th>
+                      <th class="border p-2 text-left">Status</th>
+                      <th class="border p-2 text-left">Priority</th>
+                      <th class="border p-2 text-left">Category</th>
+                      <th class="border p-2 text-left">Created By</th>
+                      <th class="border p-2 text-left">Assigned To</th>
+                      <th class="border p-2 text-left">Date</th>
+                      <th class="border p-2 text-center">Attachments</th>
+                      <th class="border p-2 text-center">Action</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for ticket in recent_tickets %}
+                      <tr class="hover:bg-gray-50 {% if not ticket.assigned_to %}unassigned-row{% endif %}">
+                          <td class="border p-2 font-semibold">
+                              #{{ ticket.id }}
+                              {% if not ticket.assigned_to %}
+                                  <span class="text-orange-600 text-xs pulse-badge">
+                                      <i class="fas fa-exclamation-circle"></i>
+                                  </span>
+                              {% endif %}
+                          </td>
+                          <td class="border p-2">
+                              {{ ticket.subject[:50] }}{% if ticket.subject|length > 50 %}...{% endif %}</td>
+                          <td class="border p-2">
+                              <span class="px-2 py-1 rounded text-xs font-semibold
+                                  {% if ticket.status == 'Open' %} bg-blue-100 text-blue-800
+                                  {% elif ticket.status == 'In Progress' %} bg-yellow-100 text-yellow-800
+                                  {% elif ticket.status == 'Resolved' %} bg-green-100 text-green-800
+                                  {% elif ticket.status == 'Closed' %} bg-gray-200 text-gray-700
+                                  {% endif %}">
+                                  {{ ticket.status }}
+                              </span>
+                          </td>
+                          <td class="border p-2">
+                              {% if ticket.priority == 'Critical' %}
+                                  <span class="text-red-600 font-semibold">🔴 {{ ticket.priority }}</span>
+                              {% elif ticket.priority == 'High' %}
+                                  <span class="text-orange-600 font-semibold">🟠 {{ ticket.priority }}</span>
+                              {% elif ticket.priority == 'Medium' %}
+                                  <span class="text-yellow-600 font-semibold">🟡 {{ ticket.priority }}</span>
+                              {% else %}
+                                  <span class="text-green-600 font-semibold">🟢 {{ ticket.priority }}</span>
+                              {% endif %}
+                          </td>
+                          <td class="border p-2">{{ ticket.category.name }}</td>
+                          <td class="border p-2">{{ ticket.creator.username }}</td>
+                          <td class="border p-2">
+                              {% if ticket.assigned_to %}
+                                  <span class="text-green-700 font-medium">
+                                      <i class="fas fa-user-check"></i> {{ ticket.assigned_agent.username }}
+                                  </span>
+                              {% else %}
+                                  <span class="text-orange-600 font-semibold pulse-badge">
+                                      <i class="fas fa-user-times"></i> UNASSIGNED
+                                  </span>
+                              {% endif %}
+                          </td>
+                          <td class="border p-2 text-sm">{{ ticket.created_at.strftime('%b %d, %Y') }}</td>
+                          <td class="border p-2 text-center">
+                              {% if ticket.attachment or (ticket.attachments and ticket.attachments|length > 0) %}
+                                  <span class="text-blue-600" title="Has attachment(s)">
+                                      <i class="fas fa-paperclip"></i>
+                                      {% if ticket.attachments and ticket.attachments|length > 0 %}
+                                          <span class="text-xs">({{ ticket.attachments|length }})</span>
+                                      {% endif %}
+                                  </span>
+                              {% else %}
+                                  <span class="text-gray-400">-</span>
+                              {% endif %}
+                          </td>
+                          <td class="border p-2 text-center">
+                              <a href="{{ url_for('admin.view_ticket', ticket_id=ticket.id) }}"
+                                 class="{% if not ticket.assigned_to %}bg-orange-500 hover:bg-orange-600{% else %}bg-indigo-500 hover:bg-indigo-600{% endif %} text-white px-3 py-1 rounded text-sm transition">
+                                  <i class="fas fa-{% if not ticket.assigned_to %}user-plus{% else %}eye{% endif %}"></i>
+                                  {% if not ticket.assigned_to %}Assign{% else %}View{% endif %}
+                              </a>
+                          </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+              </table>
+          </div>
+      {% else %}
+          <p class="text-gray-500 text-center py-8">
+              <i class="fas fa-inbox text-4xl mb-2"></i><br>
+              No tickets found.
+          </p>
+      {% endif %}
   </div>
 
   <!-- ✅ Chart Script -->

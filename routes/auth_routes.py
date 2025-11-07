@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from extensions import db
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -43,9 +43,8 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-            flash("✅ Login successful!", "success")
 
-            # ✅ Redirect based on role
+            # Role-based redirection (NO flash message to avoid duplicates)
             if user.role == 'admin':
                 return redirect(url_for('admin.admin_dashboard'))
             elif user.role == 'agent':
